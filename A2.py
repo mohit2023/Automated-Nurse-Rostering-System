@@ -164,6 +164,8 @@ def generate_maping(roster1,roster2,N):
     while i<N and j<N:
         if(roster2[i] == 'M' and roster1[j] == 'M'):
             result[i]=j
+            i=i+1
+            j=j+1
         while i<N and roster2[i]!='M':
             i = i+1
         while j<N and roster1[j]!='M':
@@ -173,6 +175,8 @@ def generate_maping(roster1,roster2,N):
     while i<N and j<N:
         if(roster2[i] == 'E' and roster1[j] == 'E'):
             result[i]=j
+            i=i+1
+            j=j+1
         while i<N and roster2[i]!='E':
             i = i+1
         while j<N and roster1[j]!='E':
@@ -182,6 +186,8 @@ def generate_maping(roster1,roster2,N):
     while i<N and j<N:
         if(roster2[i] == 'A' and roster1[j] == 'A'):
             result[i]=j
+            i=i+1
+            j=j+1
         while i<N and roster2[i]!='A':
             i = i+1
         while j<N and roster1[j]!='A':
@@ -191,14 +197,13 @@ def generate_maping(roster1,roster2,N):
     while i<N and j<N:
         if(roster2[i] == 'R' and roster1[j] == 'R'):
             result[i]=j
+            i=i+1
+            j=j+1
         while i<N and roster2[i]!='R':
             i = i+1
         while j<N and roster1[j]!='R':
             j = j+1
 
-        
-    for j in range(len(roster)):
-        result[roster[1]] = roster[2]
     return result
 
 def map_roster(roster,maping,N):
