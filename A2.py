@@ -2,18 +2,16 @@ import json
 import csv
 import sys
 
-def CSP(N,D,m,a,e):
-    return {"N0_0": "R", "N1_0": "R", "N2_0": "A", "N0_1": "R", "N1_1": "M", "N2_1": "E"}
+GlobalSolutionList_softCSP = []
 
-def dump(soln_list):
-    with open("solution.json" , 'w') as file:
+def dump(soln_list, filename):
+    print(soln_list)
+    print("\n")
+    with open(filename , 'w') as file:
         # for d in soln_list:
         #     json.dump(d,file)
         #     file.write("\n")
         json.dump(soln_list,file)
-
-def part_2(csvreader):
-    return {}
 
  
 
@@ -266,16 +264,379 @@ def part_1(csvreader):
             print(row)
             print(nurse_roster)
         result = {}
-        # print(result)
         # print(nurse_roster)
         for day in range(len(nurse_roster)):
             for id in range(len(nurse_roster[day])):
                 key = "N"+str(id)+"_"+str(day)
-                # print(key)
                 result[key] = nurse_roster[day][id]
         soln_list.append(result)
     print(soln_list)
     return soln_list
+
+def next_permutaion(base):
+    if(base[2]!=0):
+        base[2] = base[2]-1
+        base[3] = base[3]+1
+    else:
+        if(base[1]!=0):
+            base[1]=base[1]-1
+            base[2]=base[2]+base[3]+1
+            base[3]=0
+        else:
+            if(base[0]!=0):
+                base[0]=base[0]-1
+                base[1]=base[1]+base[2]+base[3]+1
+                base[2]=0
+                base[3]=0
+            else:
+                base = (-1,-1,-1,-1)
+    return base
+
+def permutation_constraint(base,c0,c1,c2,c3):
+    if(base[0]>c0 or base[1]>c1 or base[2]>c2 or base[3]>c3):
+        return False
+    return True
+
+def convertToJson(nurse_roster):
+    result = {}
+    for day in range(len(nurse_roster)):
+        for id in range(len(nurse_roster[day])):
+            key = "N"+str(id)+"_"+str(day)
+            result[key] = nurse_roster[day][id]
+    return result
+
+def updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S):
+    last_index = len(GlobalSolutionList_softCSP)-1
+    print("Found a sol for: ", last_index)
+    # print(nurse_count)
+    # nurse_roster = create_roster_soft_CSP(nurse_count,N,D,m,a,e,S)
+    print(nurse_roster)
+    print("\n")
+    if(not verify_roster(nurse_roster,N,D,m,a,e)):
+            print("Error in result\n")
+            print(nurse_roster)
+            return
+    curr_weight = calculate_weight(nurse_roster,N,S,D)
+    past_weight = calculate_weight(GlobalSolutionList_softCSP[last_index],N,S,D)
+    if(curr_weight > past_weight):
+        result = convertToJson(nurse_roster)
+        GlobalSolutionList_softCSP[last_index] = result
+        # print("dump called from update\n")
+        dump(GlobalSolutionList_softCSP,"solution2.json")
+    
+
+def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
+    if(curr_day == D):
+        # print("A sol found")
+        # print(nurse_count)
+        nurse_roster = create_roster_soft_CSP(nurse_count,N,D,m,a,e,S)
+        updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S)
+        return True
+
+    flag = False
+    ld = curr_day-1
+    if(curr_day == 0):
+        if(curr_day+7>D):
+            m_s_r = S
+            m_s_nr = 0
+            m_ns_r = N-S
+            m_ns_nr = 0
+            m_f = [m,0,0,0]
+            while m_f[0]>=0:
+                if(permutation_constraint(m_f,m_s_r,m_s_nr,m_ns_r,m_ns_nr)):
+                    e_s_r = S-m_f[0]
+                    e_s_nr = 0
+                    e_ns_r = N-S-m_f[2]
+                    e_ns_nr = 0
+                    e_f = [e,0,0,0]
+                    while e_f[0]>=0:
+                        if(permutation_constraint(e_f,e_s_r,e_s_nr,e_ns_r,e_ns_nr)):
+                            a_r = N-m_f[0]-m_f[2]-e_f[0]-e_f[2]
+                            a_ns_nr = 0
+                            a_s_nr = 0
+                            a_f = [0,a,0,0]
+                            while a_f[0]>=0:
+                                if(permutation_constraint(a_f,0,a_r,a_ns_nr,a_s_nr)):
+                                    r_f = [0,a_r-a_f[1],a_ns_nr-a_f[2],a_s_nr-a_f[3]]
+                                    curr_count = {'M':m_f,'E':e_f,'A':a_f,'R':r_f}
+                                    non_rest_total = m_f[1]+m_f[3]+e_f[1]+e_f[3]+a_f[2]+a_f[3]
+                                    left_week_days = 6-curr_day%7
+                                    if(non_rest_total<=left_week_days*(N-m-e-a)):
+                                        nurse_count[curr_day]=curr_count
+                                        flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                                a_f = next_permutaion(a_f)
+                        e_f = next_permutaion(e_f)
+                m_f = next_permutaion(m_f)
+            return flag
+        else:
+            m_s_r = 0
+            m_s_nr = S
+            m_ns_r = 0
+            m_ns_nr = N-S
+            m_f = [m,0,0,0]
+            while m_f[0]>=0:
+                if(permutation_constraint(m_f,m_s_r,m_s_nr,m_ns_r,m_ns_nr)):
+                    e_s_r = 0
+                    e_s_nr = S-m_f[1]
+                    e_ns_r = 0
+                    e_ns_nr = N-S-m_f[3]
+                    e_f = [e,0,0,0]
+                    while e_f[0]>=0:
+                        if(permutation_constraint(e_f,e_s_r,e_s_nr,e_ns_r,e_ns_nr)):
+                            a_r = 0
+                            a_ns_nr = N-S-m_f[3]-e_f[3]
+                            a_s_nr = S-m_f[1]-e_f[1]
+                            a_f = [0,a,0,0]
+                            while a_f[0]>=0:
+                                if(permutation_constraint(a_f,0,a_r,a_ns_nr,a_s_nr)):
+                                    r_f = [0,a_r-a_f[1],a_ns_nr-a_f[2],a_s_nr-a_f[3]]
+                                    curr_count = {'M':m_f,'E':e_f,'A':a_f,'R':r_f}
+                                    non_rest_total = m_f[1]+m_f[3]+e_f[1]+e_f[3]+a_f[2]+a_f[3]
+                                    left_week_days = 6-curr_day%7
+                                    if(non_rest_total<=left_week_days*(N-m-e-a)):
+                                        nurse_count[curr_day]=curr_count
+                                        flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                                a_f = next_permutaion(a_f)
+                        e_f = next_permutaion(e_f)
+                m_f = next_permutaion(m_f)
+            return flag
+    elif(curr_day%7 == 0):
+        prev = nurse_count[ld]
+        if(curr_day+7>D):
+            m_s_r = S-prev['M'][0]-prev['M'][1]-prev['E'][0]-prev['E'][1]
+            m_s_nr = 0
+            m_ns_r = N-S-prev['M'][2]-prev['M'][3]-prev['E'][2]-prev['E'][3]
+            m_ns_nr = 0
+            m_f = [m,0,0,0]
+            while m_f[0]>=0:
+                if(permutation_constraint(m_f,m_s_r,m_s_nr,m_ns_r,m_ns_nr)):
+                    e_s_r = S-m_f[0]
+                    e_s_nr = 0
+                    e_ns_r = N-S-m_f[2]
+                    e_ns_nr = 0
+                    e_f = [e,0,0,0]
+                    while e_f[0]>=0:
+                        if(permutation_constraint(e_f,e_s_r,e_s_nr,e_ns_r,e_ns_nr)):
+                            a_r = N-m_f[0]-m_f[2]-e_f[0]-e_f[2]
+                            a_ns_nr = 0
+                            a_s_nr = 0
+                            a_f = [0,a,0,0]
+                            while a_f[0]>=0:
+                                if(permutation_constraint(a_f,0,a_r,a_ns_nr,a_s_nr)):
+                                    r_f = [0,a_r-a_f[1],a_ns_nr-a_f[2],a_s_nr-a_f[3]]
+                                    curr_count = {'M':m_f,'E':e_f,'A':a_f,'R':r_f}
+                                    non_rest_total = m_f[1]+m_f[3]+e_f[1]+e_f[3]+a_f[2]+a_f[3]
+                                    left_week_days = 6-curr_day%7
+                                    if(non_rest_total<=left_week_days*(N-m-e-a)):
+                                        nurse_count[curr_day]=curr_count
+                                        flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                                a_f = next_permutaion(a_f)
+                        e_f = next_permutaion(e_f)
+                m_f = next_permutaion(m_f)
+            return flag
+        else:
+            m_s_r = 0
+            m_s_nr = S-prev['M'][0]-prev['M'][1]-prev['E'][0]-prev['E'][1]
+            m_ns_r = 0
+            m_ns_nr = N-S-prev['M'][2]-prev['M'][3]-prev['E'][2]-prev['E'][3]
+            m_f = [m,0,0,0]
+            while m_f[0]>=0:
+                if(permutation_constraint(m_f,m_s_r,m_s_nr,m_ns_r,m_ns_nr)):
+                    e_s_r = 0
+                    e_s_nr = S-m_f[1]
+                    e_ns_r = 0
+                    e_ns_nr = N-S-m_f[3]
+                    e_f = [e,0,0,0]
+                    while e_f[0]>=0:
+                        if(permutation_constraint(e_f,e_s_r,e_s_nr,e_ns_r,e_ns_nr)):
+                            a_r = 0
+                            a_ns_nr = N-S-m_f[3]-e_f[3]
+                            a_s_nr = S-m_f[1]-e_f[1]
+                            a_f = [0,a,0,0]
+                            while a_f[0]>=0:
+                                if(permutation_constraint(a_f,0,a_r,a_ns_nr,a_s_nr)):
+                                    r_f = [0,a_r-a_f[1],a_ns_nr-a_f[2],a_s_nr-a_f[3]]
+                                    curr_count = {'M':m_f,'E':e_f,'A':a_f,'R':r_f}
+                                    non_rest_total = m_f[1]+m_f[3]+e_f[1]+e_f[3]+a_f[2]+a_f[3]
+                                    left_week_days = 6-curr_day%7
+                                    if(non_rest_total<=left_week_days*(N-m-e-a)):
+                                        nurse_count[curr_day]=curr_count
+                                        flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                                a_f = next_permutaion(a_f)
+                        e_f = next_permutaion(e_f)
+                m_f = next_permutaion(m_f)
+            return flag
+    else:
+        prev = nurse_count[ld]
+        m_s_r = S-prev['M'][0]-prev['M'][1]-prev['E'][0]-prev['E'][1]-prev['A'][3]
+        m_s_nr = prev['A'][3]
+        m_ns_r = N-S-prev['M'][2]-prev['M'][3]-prev['E'][2]-prev['E'][3]-prev['A'][2]
+        m_ns_nr = prev['A'][2]
+        m_f = [m,0,0,0]
+        while m_f[0]>=0:
+            if(permutation_constraint(m_f,m_s_r,m_s_nr,m_ns_r,m_ns_nr)):
+                e_s_r = m_s_r+prev['M'][0]+prev['E'][0]-m_f[0]
+                e_s_nr = m_s_nr+prev['M'][1]+prev['E'][1]-m_f[1]
+                e_ns_r = m_ns_r+prev['M'][2]+prev['E'][2]-m_f[2]
+                e_ns_nr = m_ns_nr+prev['M'][3]+prev['E'][3]-m_f[3]
+                e_f = [e,0,0,0]
+                while e_f[0]>=0:
+                    if(permutation_constraint(e_f,e_s_r,e_s_nr,e_ns_r,e_ns_nr)):
+                        a_r = prev['M'][0]+prev['M'][2]+prev['E'][0]+prev['E'][2]+prev['A'][1]+N-m-e-a-m_f[0]-m_f[2]-e_f[0]-e_f[1]
+                        a_ns_nr = prev['M'][3]+prev['E'][3]+prev['A'][2]-m_f[3]-e_f[3]
+                        a_s_nr = N-m-e-a_r-a_ns_nr
+                        a_f = [0,a,0,0]
+                        while a_f[0]>=0:
+                            if(permutation_constraint(a_f,0,a_r,a_ns_nr,a_s_nr)):
+                                r_f = [0,a_r-a_f[1],a_ns_nr-a_f[2],a_s_nr-a_f[3]]
+                                curr_count = {'M':m_f,'E':e_f,'A':a_f,'R':r_f}
+                                non_rest_total = m_f[1]+m_f[3]+e_f[1]+e_f[3]+a_f[2]+a_f[3]
+                                left_week_days = 6-curr_day%7
+                                if(non_rest_total<=left_week_days*(N-m-e-a)):
+                                    nurse_count[curr_day]=curr_count
+                                    flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                            a_f = next_permutaion(a_f)
+                    e_f = next_permutaion(e_f)
+            m_f = next_permutaion(m_f)
+        return flag
+
+    return False
+
+def create_roster_soft_CSP(nurse_count,N,D,m,a,e,S):
+    nurse_roster = []
+    prev_day_roster = ['A' for i in range(N)]
+    week_rest = [False for i in range(N)]
+    for d in range(D):
+        if(d%7==0):
+            if(d+7>D):
+                week_rest = [True for i in range(N)]
+            else:
+                week_rest = [False for i in range(N)]
+
+        nurse_curr_day = ['R' for j in range(N)]
+        morning_available = []
+        for j in range(N):
+            if(prev_day_roster[j]=='A' or prev_day_roster[j]=='R'):
+                morning_available.append(j)
+
+        count = [0,0,0,0]
+        for id in morning_available:
+            if(week_rest[id] and id<S and count[0]<nurse_count[d]['M'][0]):
+                nurse_curr_day[id] = 'M'
+                count[0] = count[0]+1
+            elif(count[1]<nurse_count[d]['M'][1] and id<S and not week_rest[id]):
+                nurse_curr_day[id] = 'M'
+                count[1] = count[1]+1
+            elif(count[2]<nurse_count[d]['M'][2] and id>=S and week_rest[id]):
+                nurse_curr_day[id]='M'
+                count[2] = count[2]+1
+            elif(count[3]<nurse_count[d]['M'][3] and id>=S and not week_rest[id]):
+                nurse_curr_day[id] = 'M'
+                count[3] = count[3]+1
+        
+        
+        available = []
+        for j in range(N):
+            if(nurse_curr_day[j] == 'R'):
+                available.append(j)
+        count = [0,0,0,0]
+        for id in available:
+            if(week_rest[id] and id<S and count[0]<nurse_count[d]['E'][0]):
+                nurse_curr_day[id] = 'E'
+                count[0] = count[0]+1
+            elif(count[1]<nurse_count[d]['E'][1] and id<S and not week_rest[id]):
+                nurse_curr_day[id] = 'E'
+                count[1] = count[1]+1
+            elif(count[2]<nurse_count[d]['E'][2] and id>=S and week_rest[id]):
+                nurse_curr_day[id]='E'
+                count[2] = count[2]+1
+            elif(count[3]<nurse_count[d]['E'][3] and id>=S and not week_rest[id]):
+                nurse_curr_day[id] = 'E'
+                count[3] = count[3]+1
+
+        available = []
+        for j in range(N):
+            if(nurse_curr_day[j] == 'R'):
+                available.append(j)
+        count = [0,0,0,0]
+        for id in available:
+            if(week_rest[id] and id<S and count[0]<nurse_count[d]['A'][0]):
+                nurse_curr_day[id] = 'A'
+                count[0] = count[0]+1
+            elif(count[1]<nurse_count[d]['A'][1] and week_rest[id]):
+                nurse_curr_day[id] = 'A'
+                count[1] = count[1]+1
+            elif(count[2]<nurse_count[d]['A'][2] and id>=S and not week_rest[id]):
+                nurse_curr_day[id]='A'
+                count[2] = count[2]+1
+            elif(count[3]<nurse_count[d]['A'][3] and id<S and not week_rest[id]):
+                nurse_curr_day[id] = 'A'
+                count[3] = count[3]+1
+
+        prev_day_roster = nurse_curr_day
+        for id in range(N):
+            if(nurse_curr_day[id]=='R'):
+                week_rest[id] = True
+        nurse_roster.append(nurse_curr_day)
+    
+    return nurse_roster
+        
+
+
+def part2_CSP(N,D,m,a,e,S):
+    if(D>1 and N-m-e<m):
+        return
+    elif(D>=7 and (N-m-a-e)*7<N):
+        return
+    if(D == 0):
+        return
+
+    nurse = [['M' if i<m else 'E' if i-m<e else 'A' if i-m-e<a else 'R'  for i in range(N)]]
+    if(D == 1):
+        updateSolutionList_softCSP(nurse,N,D,m,a,e,S)
+        return
+
+    nurse_count = []
+    for i in range(D):
+        nurse_count.append([])
+    flag = solve_CSP_soft(N,D,m,a,e,S,nurse_count,0)
+    if(not flag):
+        return
+    
+    # print(nurse_count)
+    # nurse_roster = create_roster_soft_CSP(nurse_count,N,D,m,a,e,S)
+    # return nurse_roster
+
+def calculate_weight(nurse_roster,N,S,D):
+    if(nurse_roster == {} or nurse_roster == []):
+        return 0
+    result = N*D
+    for d in range(D):
+        for id in range(S):
+            if(nurse_roster[d][id]=='M' or nurse_roster[d][id]=='E'):
+                result = result+1
+    return result
+
+def part_2(csvreader):
+    rows = []
+    for row in csvreader:
+        GlobalSolutionList_softCSP.append({})
+        # print(row)
+        if(len(row) != 7):
+            print("INVALID INPUT FILE FORMAT\n")
+            break
+        rows.append(row)
+        N = int(row[0])
+        D = int(row[1])
+        m = int(row[2])
+        a = int(row[3])
+        e = int(row[4])
+        S = int(row[5])
+        T = int(row[6])
+        part2_CSP(N,D,m,a,e,S)
+        print("For row: ", row)
+        dump(GlobalSolutionList_softCSP,"solution2.json")
+        
 
 
 def main(name):
@@ -286,12 +647,15 @@ def main(name):
     num = len(header)
     if(num == 5):
         soln_list = part_1(csvreader)
-        dump(soln_list)
+        dump(soln_list,"solution.json")
     elif(num == 7):
         part_2(csvreader)
+        dump(GlobalSolutionList_softCSP,"solution2.json")
     else:
         print("INVALID INPUT FILE FORMAT\n")
     file.close()
+
+
 
 if(len(sys.argv) == 2):
     main(sys.argv[1])
