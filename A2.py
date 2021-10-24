@@ -356,7 +356,7 @@ def convertToJson(nurse_roster):
             result[key] = nurse_roster[day][id]
     return result
 
-def updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S):
+def updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S,weight):
     global GlobalWeight
     last_index = len(GlobalSolutionList_softCSP)-1
     # print("Found a sol for: ", last_index)
@@ -374,7 +374,7 @@ def updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S):
     if(curr_weight > past_weight):
         result = convertToJson(nurse_roster)
         GlobalSolutionList_softCSP[last_index] = result
-        GlobalWeight = curr_weight
+        GlobalWeight = weight
         # print("dump called from update\n")
         dump(GlobalSolutionList_softCSP,"solution.json")
     
@@ -390,7 +390,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day,curr_weight):
         # print("A sol found")
         # print(nurse_count)
         nurse_roster = create_roster_soft_CSP(nurse_count,N,D,m,a,e,S)
-        updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S)
+        updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S,curr_weight)
         return True
 
     if not within_timeLimit():

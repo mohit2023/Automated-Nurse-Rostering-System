@@ -44,12 +44,12 @@ with open(filename,'w') as file:
 
 # part 2 test cases 
 Matrix = []
-for N in range(8):
-	for D in range(8):
+for N in range(10,11):
+	for D in range(9,10):
 		for m in range(N):
 			for a in range(N-m):
 				for e in range(N-m-a):
-					for S in range(1):
+					for S in range(6,N-2):
 						Matrix.append([N,D,m,a,e,S,100])
 
 header = ['N','D','m','a','e','S','T']
