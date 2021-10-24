@@ -78,6 +78,9 @@ def part1_CSP(N,D,m,a,e):
     if(not flag):
         return {}
     
+    print("Part1 solution count:\n")
+    print(nurse_count)
+    
     for i in range(1,len(nurse_count)):
         nurse_curr_day = ['R' for j in range(N)]
         morning_avaialble = []
@@ -289,7 +292,7 @@ def next_permutaion(base):
                 base[2]=0
                 base[3]=0
             else:
-                base = (-1,-1,-1,-1)
+                base = [-1,-1,-1,-1]
     return base
 
 def permutation_constraint(base,c0,c1,c2,c3):
@@ -311,12 +314,13 @@ def updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S):
     # print(nurse_count)
     # nurse_roster = create_roster_soft_CSP(nurse_count,N,D,m,a,e,S)
     print(nurse_roster)
-    print("\n")
     if(not verify_roster(nurse_roster,N,D,m,a,e)):
             print("Error in result\n")
             print(nurse_roster)
             return
     curr_weight = calculate_weight(nurse_roster,N,S,D)
+    print("with weight: ", curr_weight)
+    print("\n")
     past_weight = calculate_weight(GlobalSolutionList_softCSP[last_index],N,S,D)
     if(curr_weight > past_weight):
         result = convertToJson(nurse_roster)
@@ -326,6 +330,7 @@ def updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S):
     
 
 def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
+    # print(curr_day, nurse_count)
     if(curr_day == D):
         # print("A sol found")
         # print(nurse_count)
@@ -363,7 +368,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                     left_week_days = 6-curr_day%7
                                     if(non_rest_total<=left_week_days*(N-m-e-a)):
                                         nurse_count[curr_day]=curr_count
-                                        flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
                                 a_f = next_permutaion(a_f)
                         e_f = next_permutaion(e_f)
                 m_f = next_permutaion(m_f)
@@ -395,7 +400,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                     left_week_days = 6-curr_day%7
                                     if(non_rest_total<=left_week_days*(N-m-e-a)):
                                         nurse_count[curr_day]=curr_count
-                                        flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
                                 a_f = next_permutaion(a_f)
                         e_f = next_permutaion(e_f)
                 m_f = next_permutaion(m_f)
@@ -429,7 +434,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                     left_week_days = 6-curr_day%7
                                     if(non_rest_total<=left_week_days*(N-m-e-a)):
                                         nurse_count[curr_day]=curr_count
-                                        flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
                                 a_f = next_permutaion(a_f)
                         e_f = next_permutaion(e_f)
                 m_f = next_permutaion(m_f)
@@ -461,7 +466,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                     left_week_days = 6-curr_day%7
                                     if(non_rest_total<=left_week_days*(N-m-e-a)):
                                         nurse_count[curr_day]=curr_count
-                                        flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
                                 a_f = next_permutaion(a_f)
                         e_f = next_permutaion(e_f)
                 m_f = next_permutaion(m_f)
@@ -482,7 +487,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                 e_f = [e,0,0,0]
                 while e_f[0]>=0:
                     if(permutation_constraint(e_f,e_s_r,e_s_nr,e_ns_r,e_ns_nr)):
-                        a_r = prev['M'][0]+prev['M'][2]+prev['E'][0]+prev['E'][2]+prev['A'][1]+N-m-e-a-m_f[0]-m_f[2]-e_f[0]-e_f[1]
+                        a_r = prev['M'][0]+prev['M'][2]+prev['E'][0]+prev['E'][2]+prev['A'][1]+N-m-e-a-m_f[0]-m_f[2]-e_f[0]-e_f[2]
                         a_ns_nr = prev['M'][3]+prev['E'][3]+prev['A'][2]-m_f[3]-e_f[3]
                         a_s_nr = N-m-e-a_r-a_ns_nr
                         a_f = [0,a,0,0]
@@ -494,7 +499,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                 left_week_days = 6-curr_day%7
                                 if(non_rest_total<=left_week_days*(N-m-e-a)):
                                     nurse_count[curr_day]=curr_count
-                                    flag = flag or solve_CSP_soft(N,D,m,e,a,S,nurse_count,curr_day+1)
+                                    flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
                             a_f = next_permutaion(a_f)
                     e_f = next_permutaion(e_f)
             m_f = next_permutaion(m_f)
