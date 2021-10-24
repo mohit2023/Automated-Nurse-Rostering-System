@@ -25,17 +25,17 @@ import csv
 # 		writer.writerow(Matrix[i])
 
 Matrix = []
-for N in range(51):
-	for D in range(51):
+for N in range(21):
+	for D in range(8):
 		for m in range(0,N):
 			for a in range(0,N-m):
 				for e in range(0,N-m-a):
 					Matrix.append([N,D,m,a,e])
 
 header = ['N','D','m','a','e']
-filename = 'input_a.csv'
+filename = 'testcase_a.csv'
 
-with open(filename,'ab',) as file:
+with open(filename,'w') as file:
 	writer = csv.writer(file)
 	writer.writerow(header)
 	for i in range(len(Matrix)):

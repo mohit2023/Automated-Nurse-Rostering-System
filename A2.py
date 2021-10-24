@@ -20,13 +20,14 @@ def within_timeLimit():
     return True
 
 def dump(soln_list, filename):
-    print(soln_list)
-    print("\n")
+    # print(soln_list)
+    # print("\n")
+    filename = "solution.json"
     with open(filename , 'w') as file:
-        # for d in soln_list:
-        #     json.dump(d,file)
-        #     file.write("\n")
-        json.dump(soln_list,file)
+        for d in soln_list:
+            json.dump(d,file)
+            file.write("\n")
+        # json.dump(soln_list,file)
 
  
 
@@ -93,8 +94,8 @@ def part1_CSP(N,D,m,a,e):
     if(not flag):
         return {}
     
-    print("Part1 solution count:")
-    print(nurse_count)
+    # print("Part1 solution count:")
+    # print(nurse_count)
     
     for i in range(1,len(nurse_count)):
         nurse_curr_day = ['R' for j in range(N)]
@@ -271,8 +272,11 @@ def verify_roster(nurse_roster,N,D,m,a,e):
 def part_1(csvreader):
     soln_list = []
     rows = []
+
+    Matrix = []
+    
     for row in csvreader:
-        print(row)
+        # print(row)
         if(len(row) != 5):
             print("INVALID INPUT FILE FORMAT\n")
             break
@@ -288,13 +292,35 @@ def part_1(csvreader):
             print(row)
             print(nurse_roster)
         result = {}
-        print(nurse_roster)
+
+        flag_1 = True
+        if (nurse_roster=={}):
+            if(D>1 and N-m-e<m):
+                flag_1 = False
+            elif(D>=7 and (N-m-a-e)*7<N):
+                flag_1 = False
+            if(D == 0):
+                flag_1 = False
+            if (flag_1==True):
+                Matrix.append(row)
+                print(row)
+
+        # print(nurse_roster)
         for day in range(len(nurse_roster)):
             for id in range(len(nurse_roster[day])):
                 key = "N"+str(id)+"_"+str(day)
                 result[key] = nurse_roster[day][id]
         soln_list.append(result)
-    print(soln_list)
+
+    header = ['N','D','m','a','e']
+    filename1 = 'part1_nosol_testcase.csv'
+
+    with open(filename1,'w') as file1:
+        writer = csv.writer(file1)
+        writer.writerow(header)
+        for i in range(len(Matrix)):
+            writer.writerow(Matrix[i])
+    # print(soln_list)
     return soln_list
 
 def next_permutaion(base):
