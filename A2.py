@@ -7,10 +7,11 @@ TIME_LIMIT = 0
 BEGIN_TIME = 0
 
 GlobalSolutionList_softCSP = []
+GlobalWeight = -1
 
 def time_elapsed():
     # print(BEGIN_TIME)
-    current = time.perf_counter()
+    current = time.time()
     return current - BEGIN_TIME
 
 def within_timeLimit():
@@ -356,27 +357,34 @@ def convertToJson(nurse_roster):
     return result
 
 def updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S):
+    global GlobalWeight
     last_index = len(GlobalSolutionList_softCSP)-1
-    print("Found a sol for: ", last_index)
+    # print("Found a sol for: ", last_index)
     # print(nurse_count)
     # nurse_roster = create_roster_soft_CSP(nurse_count,N,D,m,a,e,S)
-    print(nurse_roster)
+    # print(nurse_roster)
     if(not verify_roster(nurse_roster,N,D,m,a,e)):
             print("Error in result\n")
             print(nurse_roster)
             return
     curr_weight = calculate_weight(nurse_roster,N,S,D)
-    print("with weight: ", curr_weight)
-    print("\n")
+    # print("with weight: ", curr_weight)
+    # print("\n")
     past_weight = calculate_weight(GlobalSolutionList_softCSP[last_index],N,S,D)
     if(curr_weight > past_weight):
         result = convertToJson(nurse_roster)
         GlobalSolutionList_softCSP[last_index] = result
+        GlobalWeight = curr_weight
         # print("dump called from update\n")
-        dump(GlobalSolutionList_softCSP,"solution2.json")
+        dump(GlobalSolutionList_softCSP,"solution.json")
     
 
-def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
+def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day,curr_weight):
+
+    possible_weight = curr_weight + (D-curr_day)*min(m+e,S)
+    if(possible_weight <= GlobalWeight):
+        return False
+
     # print(curr_day, nurse_count)
     if(curr_day == D):
         # print("A sol found")
@@ -418,7 +426,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                     left_week_days = 6-curr_day%7
                                     if(non_rest_total<=left_week_days*(N-m-e-a)):
                                         nurse_count[curr_day]=curr_count
-                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
+                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1,curr_weight+m_f[0]+m_f[1]+e_f[0]+e_f[1])
                                 a_f = next_permutaion(a_f)
                         e_f = next_permutaion(e_f)
                 m_f = next_permutaion(m_f)
@@ -450,7 +458,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                     left_week_days = 6-curr_day%7
                                     if(non_rest_total<=left_week_days*(N-m-e-a)):
                                         nurse_count[curr_day]=curr_count
-                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
+                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1,curr_weight+m_f[0]+m_f[1]+e_f[0]+e_f[1])
                                 a_f = next_permutaion(a_f)
                         e_f = next_permutaion(e_f)
                 m_f = next_permutaion(m_f)
@@ -484,7 +492,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                     left_week_days = 6-curr_day%7
                                     if(non_rest_total<=left_week_days*(N-m-e-a)):
                                         nurse_count[curr_day]=curr_count
-                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
+                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1,curr_weight+m_f[0]+m_f[1]+e_f[0]+e_f[1])
                                 a_f = next_permutaion(a_f)
                         e_f = next_permutaion(e_f)
                 m_f = next_permutaion(m_f)
@@ -516,7 +524,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                     left_week_days = 6-curr_day%7
                                     if(non_rest_total<=left_week_days*(N-m-e-a)):
                                         nurse_count[curr_day]=curr_count
-                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
+                                        flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1,curr_weight+m_f[0]+m_f[1]+e_f[0]+e_f[1])
                                 a_f = next_permutaion(a_f)
                         e_f = next_permutaion(e_f)
                 m_f = next_permutaion(m_f)
@@ -549,7 +557,7 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
                                 left_week_days = 6-curr_day%7
                                 if(non_rest_total<=left_week_days*(N-m-e-a)):
                                     nurse_count[curr_day]=curr_count
-                                    flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1)
+                                    flag = flag or solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day+1,curr_weight+m_f[0]+m_f[1]+e_f[0]+e_f[1])
                             a_f = next_permutaion(a_f)
                     e_f = next_permutaion(e_f)
             m_f = next_permutaion(m_f)
@@ -654,7 +662,7 @@ def part2_CSP(N,D,m,a,e,S):
     nurse_count = []
     for i in range(D):
         nurse_count.append([])
-    flag = solve_CSP_soft(N,D,m,a,e,S,nurse_count,0)
+    flag = solve_CSP_soft(N,D,m,a,e,S,nurse_count,0,0)
     if(not flag):
         return
     
@@ -675,10 +683,14 @@ def calculate_weight(nurse_roster,N,S,D):
 def part_2(csvreader):
     global BEGIN_TIME
     global TIME_LIMIT
+    global GlobalWeight
     rows = []
+
+    Matrix = []
+
     for row in csvreader:
         GlobalSolutionList_softCSP.append({})
-        # print(row)
+        print(row)
         if(len(row) != 7):
             print("INVALID INPUT FILE FORMAT\n")
             break
@@ -689,13 +701,35 @@ def part_2(csvreader):
         a = int(row[3])
         e = int(row[4])
         S = int(row[5])
+        S=min(S,N)
         T = int(row[6])
         TIME_LIMIT = T
-        BEGIN_TIME = time.perf_counter()
+        BEGIN_TIME = time.time()
+        GlobalWeight = -1
         part2_CSP(N,D,m,a,e,S)
-        print("For row: ", row)
-        dump(GlobalSolutionList_softCSP,"solution2.json")
-        
+        # print("For row: ", row)
+        dump(GlobalSolutionList_softCSP,"solution.json")
+
+        flag_1 = True
+        if (GlobalSolutionList_softCSP[len(GlobalSolutionList_softCSP)-1]=={}):
+            if(D>1 and N-m-e<m):
+                flag_1 = False
+            elif(D>=7 and (N-m-a-e)*7<N):
+                flag_1 = False
+            if(D == 0):
+                flag_1 = False
+            if (flag_1==True):
+                Matrix.append(row)
+                print(row)
+    
+    header = ['N','D','m','a','e','S','T']
+    filename1 = 'part2_nosol_testcase.csv'
+
+    with open(filename1,'w') as file1:
+        writer = csv.writer(file1)
+        writer.writerow(header)
+        for i in range(len(Matrix)):
+            writer.writerow(Matrix[i])
 
 
 def main(name):

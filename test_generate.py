@@ -42,4 +42,23 @@ with open(filename,'w') as file:
 		writer.writerow(Matrix[i])
 
 
+# part 2 test cases 
+Matrix = []
+for N in range(8):
+	for D in range(8):
+		for m in range(N):
+			for a in range(N-m):
+				for e in range(N-m-a):
+					for S in range(1):
+						Matrix.append([N,D,m,a,e,S,100])
+
+header = ['N','D','m','a','e','S','T']
+filename = 'testcase_b.csv'
+
+with open(filename,'w') as file:
+	writer = csv.writer(file)
+	writer.writerow(header)
+	for i in range(len(Matrix)):
+		writer.writerow(Matrix[i])
+
 
