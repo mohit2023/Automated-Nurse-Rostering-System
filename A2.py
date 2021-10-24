@@ -1,8 +1,23 @@
 import json
 import csv
 import sys
+import time
+
+TIME_LIMIT = 0
+BEGIN_TIME = 0
 
 GlobalSolutionList_softCSP = []
+
+def time_elapsed():
+    # print(BEGIN_TIME)
+    current = time.perf_counter()
+    return current - BEGIN_TIME
+
+def within_timeLimit():
+    elapsed = time_elapsed()
+    if(elapsed >= TIME_LIMIT-1):
+        return False
+    return True
 
 def dump(soln_list, filename):
     print(soln_list)
@@ -78,7 +93,7 @@ def part1_CSP(N,D,m,a,e):
     if(not flag):
         return {}
     
-    print("Part1 solution count:\n")
+    print("Part1 solution count:")
     print(nurse_count)
     
     for i in range(1,len(nurse_count)):
@@ -143,9 +158,10 @@ def generate_nonConflict_nurse(nurse,N,m,a,e):
     result = ['R' for j in range(N)]
     count = 0
     for j in range(N):
-        if(nurse[j]=='A' or nurse[j]=='R' and count<m):
+        if((nurse[j]=='A' or nurse[j]=='R') and count<m):
             result[j] = 'M'
             count = count+1
+    # print(result)
     count_e = 0
     count_a = 0
     for j in range(N):
@@ -156,9 +172,12 @@ def generate_nonConflict_nurse(nurse,N,m,a,e):
             elif(count_a<a):
                 result[j] = 'A'
                 count_a = count_a+1
+    # print(N,m,a,e)
+    # print(nurse,result)
     return result
 
 def generate_maping(roster1,roster2,N):
+    # print(roster1,roster2)
     result = {}
     i = 0
     j = 0
@@ -208,8 +227,10 @@ def generate_maping(roster1,roster2,N):
     return result
 
 def map_roster(roster,maping,N):
+    # print(maping)
     result = ['R' for i in range(N)]
     for id in range(N):
+        # print(id)
         result[id] = roster[maping[id]]
     return result
 
@@ -251,7 +272,7 @@ def part_1(csvreader):
     soln_list = []
     rows = []
     for row in csvreader:
-        # print(row)
+        print(row)
         if(len(row) != 5):
             print("INVALID INPUT FILE FORMAT\n")
             break
@@ -267,7 +288,7 @@ def part_1(csvreader):
             print(row)
             print(nurse_roster)
         result = {}
-        # print(nurse_roster)
+        print(nurse_roster)
         for day in range(len(nurse_roster)):
             for id in range(len(nurse_roster[day])):
                 key = "N"+str(id)+"_"+str(day)
@@ -337,6 +358,9 @@ def solve_CSP_soft(N,D,m,a,e,S,nurse_count,curr_day):
         nurse_roster = create_roster_soft_CSP(nurse_count,N,D,m,a,e,S)
         updateSolutionList_softCSP(nurse_roster,N,D,m,a,e,S)
         return True
+
+    if not within_timeLimit():
+        return False
 
     flag = False
     ld = curr_day-1
@@ -623,6 +647,8 @@ def calculate_weight(nurse_roster,N,S,D):
     return result
 
 def part_2(csvreader):
+    global BEGIN_TIME
+    global TIME_LIMIT
     rows = []
     for row in csvreader:
         GlobalSolutionList_softCSP.append({})
@@ -638,6 +664,8 @@ def part_2(csvreader):
         e = int(row[4])
         S = int(row[5])
         T = int(row[6])
+        TIME_LIMIT = T
+        BEGIN_TIME = time.perf_counter()
         part2_CSP(N,D,m,a,e,S)
         print("For row: ", row)
         dump(GlobalSolutionList_softCSP,"solution2.json")
