@@ -1,0 +1,48 @@
+Automated Nurse Rostering System
+
+Done By:
+Mohit Sharma(2019CS10372)
+Vivek Choudahry(2019CS10413)
+
+Part 1:
+
+Every day is treated as a variable of the CSP.
+The possible value of these variables are 4 pairs of numbers, each pair corresponds to one of the 4 shifts of that day (morning, afternoon, evening, rest).
+The two numbers of the pair corresponds to the number of nurses that have not got rest for that week and the number of nurses that have got rest for that week and will do that particular shift on that day.
+[Example format: {'M':(x1,y1),'E':(x2,y2),'A':(x3,y3),'R':(x4,y4)}]
+So the domain of these variables are all such possible division of total nurses.
+
+The intution behind storing these pairs instead of actually storing any permutation of nurses is that seeing at any two nurses which both have taken rests or both not taken rests in the week in which the variable day lies, then for the day the two nurses can be interchanged and that would not effect the solution(given that the interchange does not effect any contraint). Like two nurses which had got rests for the current week and one is been given afternoon shift and the other is given rest shift, the we can interchange the shifts of the two nurses and the fact that a solution exist or not exists would be same for the these two interchanged permutations.
+Handling these pairs reduces complexity a lot as compared to handling permutations of nurses that too repeated as described above.
+
+The domains are generated in following manner:
+  First pair for morning shift is generated, as it is most constrained, priority is given to nurses that have got their rest for the week because this would leave nurses without rest for the rest shift.
+  Then pair for evening shift is generated, as it is constrained by the morning shift of next shift, priority is given to nurses tha have got their rest for the week.
+  And then pair for afternoon shift is generated, and priority is given to those which have already got their rest for the week.
+  Remaining nurses goes to rest shift
+(The logic is kind of treating morning,evening and afternoon shifts themselves as variables(but coded as iterating through them instead of backtracking for simplicity of code) and so most contrained ones are filled early as there domains are smaller and so we fail early)
+Nurses who have taken rest are given more priority in generating the order of nurses because it gives more option for an efficient domain for rest shift, i.e., nurses without rests get the chance to take rests.
+
+Before using any domain it is checked if the nurses left without rest would even get enough slots in coming days to have rest or not.
+
+A solution with these counts can ge converted to easily to schedule of each nurse on every day(as by CSP this counts exists so such nurses would obviously exist). The first day solution is trivially created as first m nurses in morning shift then next e in evening then next a in afternoon rest in rest shift.
+
+We also apply CSP to a maximum of 7 days. After having a solution for 7 days, we can make a non-conflicting nurse permutation of the 7th day to create roster for 8th day. We then just map the nurses in 1st day to 8th day and use this mapping of the permutation to create roster from 9th to 14th day using solution of 2nd to 7th day. This goes on for creating solution for 7n+1 to min(7(N+1),D) days. This just takes O(D*N) time.
+
+Part 2:
+The CSP is similar to part 1
+But in this every variable holds 4 lists each of size 4(actually 2 of size 4 and 2 of size 3). Each list is corresponding to one of the shifts.
+The 4 values of the morning shifts are: senior nurses - rest done, senior nurses - rest not done, non-senior nurses - rest done, non-senior nurses - rest not done.
+Same defination for list of the evening shift.
+For afternoon shift the lists stores: 0(fixed, just to simplify code), nurse that have taken rest, non senior nurses - rest not done, senior nurses - rest not done.
+Rest shift have defination as afternoon shift.
+
+The domain values are created in same way as that were created in part 1.
+  First morning values generated, then evening then afternoon.
+
+In morning shift priority order is: senior-rest > senior-non rest > non senior-rest > non senior-non rest. Same for evening shift. Reason for priority of rest is same as that in part 1. Senior nurses are given more priority in morning and evening shift as this is a soft constraint with more weight then other constraints. So this priority helps creating high weight solution early on.
+In afternoon shift the priority order is: nurses with rest done > non senior- non rest > senior-non rest. Non senior is given more priority then senior for nurses not having done there rest because this will give more priority to senior nurses to have rest early on and then give efficient domain for morning/evening shift increasing the weight of solution that can be created.
+
+Before using any domain, other than the constraint for rest, it is checked if the current domains have a chance to make a higher weighted solution then the one that is already created.
+
+

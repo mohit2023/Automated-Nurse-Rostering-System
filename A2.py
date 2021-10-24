@@ -656,7 +656,7 @@ def part2_CSP(N,D,m,a,e,S):
 
     nurse = [['M' if i<m else 'E' if i-m<e else 'A' if i-m-e<a else 'R'  for i in range(N)]]
     if(D == 1):
-        updateSolutionList_softCSP(nurse,N,D,m,a,e,S)
+        updateSolutionList_softCSP(nurse,N,D,m,a,e,S,min(m+e,S))
         return
 
     nurse_count = []
@@ -690,7 +690,7 @@ def part_2(csvreader):
 
     for row in csvreader:
         GlobalSolutionList_softCSP.append({})
-        print(row)
+        # print(row)
         if(len(row) != 7):
             print("INVALID INPUT FILE FORMAT\n")
             break

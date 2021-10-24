@@ -25,11 +25,11 @@ import csv
 # 		writer.writerow(Matrix[i])
 
 Matrix = []
-for N in range(21):
-	for D in range(8):
-		for m in range(0,N):
-			for a in range(0,N-m):
-				for e in range(0,N-m-a):
+for N in range(51):
+	for D in range(51):
+		for m in range(N+1):
+			for a in range(N-m+1):
+				for e in range(N-m-a+1):
 					Matrix.append([N,D,m,a,e])
 
 header = ['N','D','m','a','e']
@@ -44,12 +44,12 @@ with open(filename,'w') as file:
 
 # part 2 test cases 
 Matrix = []
-for N in range(10,11):
-	for D in range(9,10):
+for N in range(21):
+	for D in range(1,9):
 		for m in range(N):
 			for a in range(N-m):
 				for e in range(N-m-a):
-					for S in range(6,N-2):
+					for S in range(N):
 						Matrix.append([N,D,m,a,e,S,100])
 
 header = ['N','D','m','a','e','S','T']
