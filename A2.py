@@ -673,7 +673,7 @@ def part2_CSP(N,D,m,a,e,S):
 def calculate_weight(nurse_roster,N,S,D):
     if(nurse_roster == {} or nurse_roster == []):
         return 0
-    result = N*D
+    result = 0
     for d in range(D):
         for id in range(S):
             if(nurse_roster[d][id]=='M' or nurse_roster[d][id]=='E'):
