@@ -45,4 +45,6 @@ In afternoon shift the priority order is: nurses with rest done > non senior- no
 
 Before using any domain, other than the constraint for rest, it is checked if the current domains have a chance to make a higher weighted solution then the one that is already created.
 
+In this part as preference is given to make more weighted solution first than a satisfiable solution, so part1 CSP is called first to get a feasible solution to startup with, so that within time limit we atleast give some solution.
+
 
