@@ -1,6 +1,9 @@
 # Automated-Nurse-Rostering-System
 
-Run: python3 A2.py csv_filename
+## To Run: 
+``` shell
+python3 A2.py csv_filename
+```
 
 Example for sample input file for part1 (Contains only hard constraints): \
 N,D,m,a,e\
